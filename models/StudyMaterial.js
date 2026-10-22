@@ -21,10 +21,52 @@ const studyMaterialSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
+    files: [
+      {
+        fileUrl: {
+          type: String,
+          required: true,
+          trim: true
+        },
+        fileName: {
+          type: String,
+          required: true,
+          trim: true
+        },
+        fileType: {
+          type: String,
+          enum: ['pdf', 'image', 'video', 'document', 'other'],
+          default: 'pdf'
+        },
+        mimeType: {
+          type: String,
+          trim: true
+        },
+        fileSize: {
+          type: Number,
+          default: 0
+        },
+        cloudinaryPublicId: {
+          type: String,
+          trim: true
+        },
+        storageType: {
+          type: String,
+          enum: ['cloudinary', 'local', 'external'],
+          default: 'local'
+        }
+      }
+    ],
     fileUrl: {
       type: String,
       trim: true
     },
+    youtubeLinks: [
+      {
+        type: String,
+        trim: true
+      }
+    ],
     youtubeLink: {
       type: String,
       trim: true,
@@ -36,7 +78,7 @@ const studyMaterialSchema = new mongoose.Schema(
     },
     fileType: {
       type: String,
-      enum: ['pdf', 'image', 'video', 'other'],
+      enum: ['pdf', 'image', 'video', 'document', 'other'],
       default: 'pdf'
     },
     mimeType: {

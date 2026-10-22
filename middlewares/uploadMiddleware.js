@@ -28,17 +28,28 @@ const ALLOWED_MIME_TYPES = [
   'image/jpeg',
   'image/png',
   'image/webp',
-  'image/gif'
+  'image/gif',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+  'application/zip',
+  'application/x-zip-compressed'
 ];
 
 // File filter function
 const fileFilter = (req, file, cb) => {
-  if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+  if (
+    ALLOWED_MIME_TYPES.includes(file.mimetype) ||
+    file.mimetype.startsWith('image/') ||
+    file.originalname.match(/\.(pdf|doc|docx|ppt|pptx|txt|png|jpg|jpeg|webp|zip)$/i)
+  ) {
     cb(null, true);
   } else {
     cb(
       ApiError.badRequest(
-        'Invalid file type. Only PDF and Image files (JPEG, PNG, WEBP, GIF) are allowed.'
+        'Invalid file type. Allowed formats: PDF, Images (JPG, PNG, WEBP), Word Documents (DOC, DOCX), Presentations (PPT, PPTX), Text (TXT), and ZIP files.'
       ),
       false
     );

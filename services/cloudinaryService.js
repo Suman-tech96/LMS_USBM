@@ -42,11 +42,21 @@ class CloudinaryService {
     }
 
     try {
+      const isImage = file.mimetype?.startsWith('image/');
       const isPdf = file.mimetype === 'application/pdf' || file.originalname?.toLowerCase().endsWith('.pdf');
+      
+      let resourceType = options.resourceType;
+      if (!resourceType) {
+        if (isImage || isPdf) {
+          resourceType = 'auto';
+        } else {
+          resourceType = 'raw';
+        }
+      }
 
       const uploadOptions = {
         folder: options.folder || env.CLOUDINARY_FOLDER || 'lms_study_materials',
-        resource_type: options.resourceType || 'auto',
+        resource_type: resourceType,
         use_filename: true,
         unique_filename: true,
         ...options

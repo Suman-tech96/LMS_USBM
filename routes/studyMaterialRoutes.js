@@ -4,6 +4,7 @@ import {
   getAllStudyMaterials,
   getStudyMaterialById,
   updateStudyMaterial,
+  deleteStudyMaterialFile,
   updateStudyMaterialStatus,
   deleteStudyMaterial
 } from '../controllers/studyMaterialController.js';
@@ -23,16 +24,35 @@ const router = express.Router();
 router.get('/', protectAny, paginationQueryValidator, validateRequest, getAllStudyMaterials);
 router.get('/:id', protectAny, mongoIdParamValidator('id'), validateRequest, getStudyMaterialById);
 
-// Admin-only upload & management
+// Admin-only upload & management (supports multiple files)
 router.post(
   '/',
   protectAdmin,
-  upload.single('file'),
+  upload.any(),
   createStudyMaterialValidator,
   validateRequest,
   createStudyMaterial
 );
-router.patch('/:id', protectAdmin, updateStudyMaterialValidator, validateRequest, updateStudyMaterial);
+
+router.patch(
+  '/:id',
+  protectAdmin,
+  upload.any(),
+  updateStudyMaterialValidator,
+  validateRequest,
+  updateStudyMaterial
+);
+
+// Delete specific file from a study material
+router.delete(
+  '/:id/files/:fileId',
+  protectAdmin,
+  mongoIdParamValidator('id'),
+  mongoIdParamValidator('fileId'),
+  validateRequest,
+  deleteStudyMaterialFile
+);
+
 router.patch(
   '/:id/status',
   protectAdmin,
@@ -40,6 +60,7 @@ router.patch(
   validateRequest,
   updateStudyMaterialStatus
 );
+
 router.delete('/:id', protectAdmin, mongoIdParamValidator('id'), validateRequest, deleteStudyMaterial);
 
 export default router;

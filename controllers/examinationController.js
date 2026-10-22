@@ -508,21 +508,38 @@ export const getStudentAvailableExams = asyncHandler(async (req, res) => {
     student: student._id
   }).select('examination status attemptNumber isEvaluated');
 
+  const studentResults = await Result.find({
+    examination: { $in: examIds },
+    student: student._id
+  })
+    .sort({ createdAt: -1 })
+    .populate('participation', 'attemptNumber startTime submitTime durationUsedMinutes isAutoSubmitted');
+
   const formattedExams = matchingExams.map((exam) => {
     const attempts = studentAttempts.filter((a) => a.examination.toString() === exam._id.toString());
     const hasActiveAttempt = attempts.some((a) => a.status === 'in-progress');
     const completedAttemptsCount = attempts.filter((a) => a.status === 'submitted' || a.status === 'timed-out').length;
+    const maxAttempts = exam.maxAttempts || 1;
+    const hasAttemptsRemaining = completedAttemptsCount < maxAttempts;
 
     let lifecycleStatus = 'Upcoming';
-    if (now >= new Date(exam.startDate) && now <= new Date(exam.endDate)) {
+    if (now < new Date(exam.startDate)) {
+      lifecycleStatus = 'Upcoming';
+    } else if (!hasAttemptsRemaining && !hasActiveAttempt) {
+      lifecycleStatus = 'Completed';
+    } else if (now >= new Date(exam.startDate) && (now <= new Date(exam.endDate) || hasAttemptsRemaining)) {
       lifecycleStatus = 'Live';
-    } else if (now > new Date(exam.endDate)) {
+    } else {
       lifecycleStatus = 'Completed';
     }
 
     const canAttempt =
-      (lifecycleStatus === 'Live' || hasActiveAttempt) &&
-      (completedAttemptsCount < (exam.maxAttempts || 1) || hasActiveAttempt);
+      (hasActiveAttempt || hasAttemptsRemaining) &&
+      now >= new Date(exam.startDate);
+
+    // Get the latest result for this exam
+    const examResults = studentResults.filter((r) => r.examination.toString() === exam._id.toString());
+    const latestResult = examResults.length > 0 ? examResults[0] : null;
 
     return {
       _id: exam._id,
@@ -541,7 +558,8 @@ export const getStudentAvailableExams = asyncHandler(async (req, res) => {
       lifecycleStatus,
       canAttempt,
       hasActiveAttempt,
-      completedAttemptsCount
+      completedAttemptsCount,
+      latestResult
     };
   });
 
@@ -893,6 +911,7 @@ export const getStudentExamResult = asyncHandler(async (req, res) => {
     examination: examinationId,
     student: student._id
   })
+    .sort({ createdAt: -1 })
     .populate('examination', 'title totalMarks passingMarks isResultPublished resultPublicationDate')
     .populate('participation', 'startTime submitTime durationUsedMinutes isAutoSubmitted');
 

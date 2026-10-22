@@ -61,10 +61,6 @@ class ExaminationService {
       throw ApiError.badRequest(`This examination has not started yet. Starts on: ${new Date(exam.startDate).toISOString()}`);
     }
 
-    if (now > new Date(exam.endDate)) {
-      throw ApiError.badRequest(`This examination has already ended on: ${new Date(exam.endDate).toISOString()}`);
-    }
-
     // Check previous attempts
     const attempts = await ExamParticipation.find({
       examination: exam._id,
@@ -78,6 +74,10 @@ class ExaminationService {
       throw ApiError.forbidden(
         `Maximum attempt limit reached (${exam.maxAttempts}). You have already submitted ${completedAttempts.length} attempt(s).`
       );
+    }
+
+    if (now > new Date(exam.endDate) && completedAttempts.length >= exam.maxAttempts && !activeAttempt) {
+      throw ApiError.badRequest(`This examination has already ended on: ${new Date(exam.endDate).toISOString()}`);
     }
 
     return { exam, activeAttempt, totalAttempts: attempts.length };

@@ -170,6 +170,38 @@ export const protectAny = asyncHandler(async (req, res, next) => {
 });
 
 /**
+ * Middleware for optional authentication
+ */
+export const optionalAuth = asyncHandler(async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  if (!token) {
+    return next();
+  }
+  try {
+    const decoded = verifyToken(token);
+    if (decoded.role === 'admin') {
+      const admin = await Admin.findOne({ _id: decoded.id, isDeleted: { $ne: true } });
+      if (admin && admin.status === 'active') {
+        req.admin = admin;
+        req.user = { id: admin._id, email: admin.email, name: admin.name, role: admin.role };
+      }
+    } else if (decoded.role === 'student') {
+      const student = await Student.findOne({ _id: decoded.id, isDeleted: { $ne: true } });
+      if (student && student.status === 'active') {
+        req.student = student;
+        req.user = { id: student._id, email: student.email, studentId: student.studentId, name: student.name, course: student.course, batch: student.batch, role: 'student' };
+      }
+    }
+  } catch {
+    // Gracefully ignore token issues for optional auth
+  }
+  next();
+});
+
+/**
  * Role authorization middleware
  */
 export const authorizeRoles = (...roles) => {

@@ -18,12 +18,12 @@ import {
 } from '../validators/courseValidator.js';
 import { mongoIdParamValidator, paginationQueryValidator } from '../validators/commonValidator.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
-import { protectAdmin, protectAny } from '../middlewares/authMiddleware.js';
+import { protectAdmin, protectAny, optionalAuth } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Read courses available to authenticated users (admin or student)
-router.get('/', protectAny, paginationQueryValidator, validateRequest, getAllCourses);
+// Read courses available publicly (optional auth for guest or logged in user)
+router.get('/', optionalAuth, paginationQueryValidator, validateRequest, getAllCourses);
 router.get('/:id', protectAny, mongoIdParamValidator('id'), validateRequest, getCourseById);
 
 // Admin-only management endpoints

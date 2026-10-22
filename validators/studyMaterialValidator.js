@@ -26,8 +26,8 @@ export const createStudyMaterialValidator = [
     .withMessage('YouTube link must be a valid URL'),
   body('fileType')
     .optional()
-    .isIn(['pdf', 'image', 'video', 'other'])
-    .withMessage('File type must be pdf, image, video, or other'),
+    .isIn(['pdf', 'image', 'video', 'document', 'other'])
+    .withMessage('File type must be pdf, image, video, document, or other'),
   body('fileUrl')
     .optional()
     .trim(),
@@ -64,8 +64,8 @@ export const updateStudyMaterialValidator = [
     .withMessage('YouTube link must be a valid URL'),
   body('fileType')
     .optional()
-    .isIn(['pdf', 'image', 'video', 'other'])
-    .withMessage('File type must be pdf, image, video, or other'),
+    .isIn(['pdf', 'image', 'video', 'document', 'other'])
+    .withMessage('File type must be pdf, image, video, document, or other'),
   body('status')
     .optional()
     .isIn(['active', 'inactive'])
