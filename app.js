@@ -20,7 +20,7 @@ app.use(helmet({
 }));
 
 const corsOptions = {
-  origin: env.CLIENT_URL === '*' ? '*' : [env.CLIENT_URL, 'http://localhost:5000', 'http://localhost:5173'],
+  origin: env.CLIENT_URL === '*' ? '*' : [env.CLIENT_URL, 'http://localhost:5000', 'http://localhost:5173',"https://prismatic-choux-9092e7.netlify.app/"],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
