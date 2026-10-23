@@ -19,11 +19,54 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
+const allowedOrigins = [
+  'http://localhost:5000',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5000',
+  'https://prismatic-choux-9092e7.netlify.app',
+];
+
+if (env.CLIENT_URL && env.CLIENT_URL !== '*') {
+  env.CLIENT_URL.split(',').forEach((url) => {
+    const trimmed = url.trim().replace(/\/$/, '');
+    if (trimmed && !allowedOrigins.includes(trimmed)) {
+      allowedOrigins.push(trimmed);
+    }
+  });
+}
+
 const corsOptions = {
-  origin: env.CLIENT_URL === '*' ? '*' : [env.CLIENT_URL, 'http://localhost:5000', 'http://localhost:5173',"https://prismatic-choux-9092e7.netlify.app/"],
+  origin: (origin, callback) => {
+    // Allow non-browser requests (Postman, curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    if (env.CLIENT_URL === '*') return callback(null, true);
+
+    const cleanOrigin = origin.replace(/\/$/, '');
+
+    // Match exact allowed origins (without trailing slash)
+    if (allowedOrigins.includes(cleanOrigin)) {
+      return callback(null, true);
+    }
+
+    // Automatically allow all Netlify subdomains (production & deploy previews)
+    try {
+      const url = new URL(origin);
+      if (url.hostname.endsWith('.netlify.app')) {
+        return callback(null, true);
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true,
+  optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
